@@ -14,15 +14,15 @@ void updateDisplay(bool update_now)
   static long next_millis = millis() + DISPLAY_UPDATE_PERIOD;  //determine the next time this function should activate
 
   //Time to update the display?
-  if (millis() > next_millis || update_now)
+  if ((millis() > next_millis) || update_now)
   {
     //block interrupts while retreiving the temperature values.
-    noInterrupts();
+    //noInterrupts();
     //int16_t adc_copy = status.adc_counts;
     int16_t tip_temperature_copy = status.tip_temperature_c;
     int16_t tip_temperature_copy2 = status.tip_temperature_c2;
-    int16_t adc_ic_temp_counts_copy = status.adc_ic_temp_counts;
-    interrupts();
+    int16_t adc_ic_temp_counts_copy = status.tempCJ;
+    //interrupts();
 
     display.clearDisplay();
     display.setTextColor(WHITE);
@@ -59,39 +59,7 @@ void updateDisplay(bool update_now)
 
     //display.print(status.encoder_pos);
 
-
     display.display();
-    if (!update_now)
-    {
-      next_millis += DISPLAY_UPDATE_PERIOD;  //set up our loop to run again in x ms
-    }
+    next_millis += DISPLAY_UPDATE_PERIOD;  //set up our loop to run again in x ms
   }
 }
-
-
-
-/*
-  if (dell.read_data() == true)
-  {
-    display.print(" ");
-    display.print("DELL PWR ");
-  }
-  else
-  {
-    display.print("     ");
-  }
-  if (fastDigitalRead(CRADLE_SENSOR) == false)
-  {
-    display.print(" ");
-    display.print("CRDL ");
-    in_cradle = true;
-  }
-  else
-  {
-    in_cradle = false;
-    display.print("      ");
-  }
-*/
-
-
-

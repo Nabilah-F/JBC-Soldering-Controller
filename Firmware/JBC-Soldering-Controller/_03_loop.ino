@@ -6,6 +6,28 @@
 //----------------Main Loop------------------------
 void loop(void)
 {
+  if(fastDigitalRead(LPINA)){
+    vSense0 = analogRead(CURRENT_SENSE0)*0.00488;//5.0*analogRead(CURRENT_SENSE0)/1024.0;// read mosfet current
+    vSense1 = analogRead(CURRENT_SENSE1)*0.00488;
+    //if(fastDigitalRead(LPINA)){
+      vInDev = analogRead(VIN_SENSE)*0.00488;// read power supply voltage
+      params.tipResistance0 = (vInDev/vSense0)*1.1798;// * (1200.0/7000.0) * (35100.0/5100.0);// work out resistance of tip
+      params.tipResistance1 = (vInDev/vSense1)*1.1798;
+      //params.iron = ;
+      if(params.tipResistance0 > 2.80 && params.tipResistance0 < 3.75){
+        params.iron = iron_T245;
+      }
+      else if(params.tipResistance0 > 1.75 && params.tipResistance0 < 2.65){
+        params.iron = iron_T210;
+      }
+      else if(params.tipResistance0 > 2.65 && params.tipResistance0 < 2.80){
+        ;
+      }
+      else {
+        params.iron = iron_none;
+      }
+    //}
+  }
   //static bool in_cradle;
   bool update_display_now = false;
 
@@ -41,7 +63,7 @@ void loop(void)
   //When button is pressed toggle power on/off
   if (fastDigitalRead(ENC_BUTTON) == false)
   {
-    noInterrupts();
+    //noInterrupts();
     if (iron_active == true)
     {
       iron_active = false;
@@ -61,7 +83,7 @@ void loop(void)
       myPID2.SetMode(params.pid_mode);
       status.pid_setpoint = params.setpoint;
     }
-    interrupts();
+    //interrupts();
     delay(200);
     while (fastDigitalRead(ENC_BUTTON) == false)
     delay(200);
@@ -72,7 +94,7 @@ void loop(void)
   if (fastDigitalRead(CRADLE_SENSOR) == false)
   {
     cradle_present = true; //we have deteected a cradle is being used. So from now on, we respond to on/off cradle events.
-    noInterrupts();
+    //noInterrupts();
     if (params.pid_mode == AUTOMATIC)
     {
       params.pid_mode = MANUAL;
@@ -81,40 +103,19 @@ void loop(void)
       status.pid_output = 0;
       status.pid_setpoint = 0;
     }
-    interrupts();
+    //interrupts();
   }
   else if(fastDigitalRead(CRADLE_SENSOR) == true && cradle_present && iron_active)
   {
-      noInterrupts();
+      //noInterrupts();
       params.pid_mode = AUTOMATIC;
       myPID.SetMode(params.pid_mode);
       myPID2.SetMode(params.pid_mode);
       status.pid_setpoint = params.setpoint;
-      interrupts();
+      //interrupts();
   }
 
-
-  //current_sense_raw=analogRead(CURRENT_SENSE);  need to figure out how to read this only when the PWM is on.
-
-
-  //TODO: Cradle logic:
-  //TOOD: If off cradle and time < x seconds, then tip ON at MAIN setpoint. If Off cradle and time >= x seconds, then tip off (maybe someone left the handle on the table. yikes!).
-  //TOOD: If On cradle and time < y seconds, then tip ON at IDLE setpoint.  If ON cradle and time >= y seconds, then tip off (someone hasnt used the tip in a long time so power down).
-  //if (in_cradle)
-  {
-    //Setpoint = 0; //turn off the power while in the cradle. //temporary disable for testing PID tuning
-    //pixels.setPixelColor(0, pixels.Color(0,0,10)); // Blue
-  }
-  //else
-  {
-    //Setpoint = enc; //set the PID loop to our encoder knob value
-    //pixels.setPixelColor(0, pixels.Color(10,0,0)); // Red
-  }
   ProcessSerialComm();
-  updateDisplay(update_display_now);
+  updateDisplay(0);
   updateLEDStatus();
 }
-
-
-
-
